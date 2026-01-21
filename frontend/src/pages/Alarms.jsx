@@ -7,7 +7,9 @@ import {
     XMarkIcon,
     FunnelIcon,
     BellAlertIcon,
+    TrashIcon,
 } from '@heroicons/react/24/outline';
+
 import { format } from 'date-fns';
 
 const Alarms = () => {
@@ -24,11 +26,14 @@ const Alarms = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [pagination, setPagination] = useState({
         page: 1,
-        limit: 50,
+        limit: 20,
         total: 0,
         totalPages: 0,
     });
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const { fetchUnresolvedCount, decrementCount } = useAlarmStore();
+
 
     useEffect(() => {
         fetchAlarms();
@@ -75,6 +80,27 @@ const Alarms = () => {
             console.error('Failed to resolve alarm:', error);
         } finally {
             setResolving(false);
+        }
+    };
+
+    const handleDeleteAll = async () => {
+        setDeleting(true);
+        try {
+            // Build params based on current filters
+            const params = {};
+            if (filters.isResolved !== '') {
+                params.isResolved = filters.isResolved;
+            }
+
+            await alarmsAPI.deleteAll(params);
+            setShowDeleteConfirm(false);
+            fetchAlarms();
+            fetchUnresolvedCount();
+        } catch (error) {
+            console.error('Failed to delete alarms:', error);
+            alert('Failed to delete alarms. Please try again.');
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -127,14 +153,25 @@ const Alarms = () => {
                     <h1 className="text-2xl lg:text-3xl font-bold text-white">Alarms</h1>
                     <p className="text-dark-400 mt-1">Security alerts and notifications</p>
                 </div>
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`btn-secondary ${hasActiveFilters ? 'ring-2 ring-primary-500' : ''}`}
-                >
-                    <FunnelIcon className="w-5 h-5" />
-                    Filters
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`btn-secondary ${hasActiveFilters ? 'ring-2 ring-primary-500' : ''}`}
+                    >
+                        <FunnelIcon className="w-5 h-5" />
+                        Filters
+                    </button>
+                    <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="btn-danger"
+                        disabled={alarms.length === 0}
+                    >
+                        <TrashIcon className="w-5 h-5" />
+                        Delete All
+                    </button>
+                </div>
             </div>
+
 
             {/* Filters */}
             {showFilters && (
@@ -203,20 +240,20 @@ const Alarms = () => {
                         <div
                             key={alarm.id}
                             className={`glass-card border ${alarm.is_resolved
-                                    ? 'opacity-60 border-dark-700/50'
-                                    : getSeverityBg(alarm.severity)
+                                ? 'opacity-60 border-dark-700/50'
+                                : getSeverityBg(alarm.severity)
                                 } ${!alarm.is_resolved && alarm.severity === 'critical' ? 'alarm-pulse' : ''}`}
                         >
                             <div className="flex flex-col md:flex-row md:items-start gap-4">
                                 {/* Icon */}
                                 <div
                                     className={`p-3 rounded-xl self-start ${alarm.is_resolved
-                                            ? 'bg-success-500/20'
-                                            : alarm.severity === 'critical'
-                                                ? 'bg-danger-500'
-                                                : alarm.severity === 'high'
-                                                    ? 'bg-warning-500'
-                                                    : 'bg-primary-500/50'
+                                        ? 'bg-success-500/20'
+                                        : alarm.severity === 'critical'
+                                            ? 'bg-danger-500'
+                                            : alarm.severity === 'high'
+                                                ? 'bg-warning-500'
+                                                : 'bg-primary-500/50'
                                         }`}
                                 >
                                     {alarm.is_resolved ? (
@@ -366,7 +403,72 @@ const Alarms = () => {
                     </div>
                 </div>
             )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-semibold text-white">Delete All Alarms</h2>
+                            <button onClick={() => setShowDeleteConfirm(false)} className="btn-icon">
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="mb-6">
+                            <div className="p-4 rounded-xl bg-danger-500/10 border border-danger-500/30">
+                                <div className="flex items-start gap-3">
+                                    <ExclamationTriangleIcon className="w-6 h-6 text-danger-400 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-white font-medium mb-2">
+                                            Are you sure you want to delete all alarms?
+                                        </p>
+                                        <p className="text-sm text-dark-300">
+                                            {filters.isResolved === 'true'
+                                                ? 'This will permanently delete all resolved alarms.'
+                                                : filters.isResolved === 'false'
+                                                    ? 'This will permanently delete all unresolved alarms.'
+                                                    : 'This will permanently delete ALL alarms (both resolved and unresolved).'}
+                                        </p>
+                                        <p className="text-sm text-danger-400 mt-2 font-medium">
+                                            This action cannot be undone!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="btn-secondary flex-1"
+                                disabled={deleting}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeleteAll}
+                                disabled={deleting}
+                                className="btn-danger flex-1"
+                            >
+                                {deleting ? (
+                                    <>
+                                        <span className="spinner w-4 h-4" />
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <TrashIcon className="w-5 h-5" />
+                                        Delete All
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+
     );
 };
 

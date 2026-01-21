@@ -23,7 +23,7 @@ const Attendance = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [pagination, setPagination] = useState({
         page: 1,
-        limit: 50,
+        limit: 20,
         total: 0,
         totalPages: 0,
     });

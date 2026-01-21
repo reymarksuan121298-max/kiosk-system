@@ -160,8 +160,8 @@ const Dashboard = () => {
                         <h2 className="text-lg font-semibold text-white">Attendance Trend</h2>
                         <span className="text-sm text-dark-400">Last 7 days</span>
                     </div>
-                    <div className="h-72 w-full">
-                        <ResponsiveContainer width="100%" height="100%" minHeight={288}>
+                    <div className="h-72 w-full min-w-0">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={288} minWidth={300}>
                             <AreaChart data={trends}>
                                 <defs>
                                     <linearGradient id="checkInGradient" x1="0" y1="0" x2="0" y2="1">

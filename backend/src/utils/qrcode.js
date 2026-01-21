@@ -3,6 +3,8 @@ import QRCode from 'qrcode';
 import { v4 as uuidv4 } from 'uuid';
 
 const ENCRYPTION_KEY = process.env.QR_ENCRYPTION_KEY || 'default-32-char-encryption-key!!';
+console.log('QR Encryption Key status:', ENCRYPTION_KEY.startsWith('8ef') ? 'PRODUCTION_KEY_LOADED' : 'WARNING_KEY_MISMATCH_OR_DEFAULT');
+console.log('Key length:', ENCRYPTION_KEY.length);
 
 /**
  * Generate encrypted QR code data

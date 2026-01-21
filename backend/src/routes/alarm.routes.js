@@ -219,6 +219,56 @@ router.put('/resolve/bulk', authenticateToken, requireAdmin, async (req, res) =>
     }
 });
 
+// Delete all alarms
+router.delete('/all', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { isResolved } = req.query;
+
+        // First, get the alarms to be deleted to count them
+        let selectQuery = supabase.from('alarms').select('id');
+
+        if (isResolved !== undefined) {
+            selectQuery = selectQuery.eq('is_resolved', isResolved === 'true');
+        }
+
+        const { data: alarmsToDelete, error: selectError } = await selectQuery;
+
+        if (selectError) throw selectError;
+
+        const deleteCount = alarmsToDelete?.length || 0;
+
+        // Now delete them
+        if (deleteCount > 0) {
+            const alarmIds = alarmsToDelete.map(a => a.id);
+            const { error: deleteError } = await supabase
+                .from('alarms')
+                .delete()
+                .in('id', alarmIds);
+
+            if (deleteError) throw deleteError;
+        }
+
+        await createAuditLog({
+            action: 'ALARMS_BULK_DELETED',
+            entityType: 'alarm',
+            entityId: null,
+            userId: req.user.id,
+            details: {
+                count: deleteCount,
+                filter: isResolved !== undefined ? { isResolved } : 'all'
+            }
+        });
+
+        res.json({
+            message: `${deleteCount} alarm${deleteCount !== 1 ? 's' : ''} deleted successfully`,
+            deletedCount: deleteCount
+        });
+    } catch (error) {
+        console.error('Delete all alarms error:', error);
+        res.status(500).json({ error: 'Failed to delete alarms', details: error.message });
+    }
+});
+
 // Get alarm statistics
 router.get('/stats/summary', authenticateToken, async (req, res) => {
     try {

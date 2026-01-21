@@ -101,6 +101,7 @@ export const alarmsAPI = {
     getOne: (id) => api.get(`/alarms/${id}`),
     resolve: (id, data) => api.put(`/alarms/${id}/resolve`, data),
     bulkResolve: (alarmIds, resolution) => api.put('/alarms/resolve/bulk', { alarmIds, resolution }),
+    deleteAll: (params) => api.delete('/alarms/all', { params }),
     getStats: (params) => api.get('/alarms/stats/summary', { params }),
 };
 
