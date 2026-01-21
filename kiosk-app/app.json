@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Kiosk Attendance",
+    "slug": "kiosk-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0ea5e9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kioskattendance.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0ea5e9"
+      },
+      "edgeToEdgeEnabled": true,
+      "minSdkVersion": 24,
+      "package": "com.kioskattendance.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Kiosk Attendance to access your camera for QR code scanning."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Kiosk Attendance to access your location for attendance verification."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fd1408ab-276d-45b7-8852-a9ba4b8ef866"
+      }
+    }
+  }
+}
