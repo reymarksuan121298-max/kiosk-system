@@ -27,7 +27,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -50,8 +51,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "fd1408ab-276d-45b7-8852-a9ba4b8ef866"
+        "projectId": "62027b05-66d8-4c95-99c0-5a37d88eb4e2"
       }
-    }
+    },
+    "owner": "kambal123"
   }
 }
