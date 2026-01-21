@@ -57,6 +57,34 @@ const getClient = async () => {
     return client;
 };
 
+// Create public client (no auth token required) for endpoints like scan
+const getPublicClient = async () => {
+    const baseURL = await getApiUrl();
+
+    const client = axios.create({
+        baseURL,
+        timeout: config.REQUEST_TIMEOUT,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+
+    // Add response interceptor for better error handling
+    client.interceptors.response.use(
+        (response) => response,
+        (error) => {
+            if (error.code === 'ECONNABORTED') {
+                error.message = 'Request timeout. Please check your connection.';
+            } else if (!error.response) {
+                error.message = 'Network error. Please check if the server is running and you are on the same network.';
+            }
+            return Promise.reject(error);
+        }
+    );
+
+    return client;
+};
+
 // API methods
 export const api = {
     // Health check - test connection to backend
@@ -83,7 +111,7 @@ export const api = {
 
     // Attendance
     scanAttendance: async (data) => {
-        const client = await getClient();
+        const client = await getPublicClient(); // No auth required for scanning
         return client.post('/attendance/scan', data);
     },
 

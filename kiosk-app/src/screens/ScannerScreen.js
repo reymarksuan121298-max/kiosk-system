@@ -9,12 +9,13 @@ import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get('window');
 
-export default function ScannerScreen({ onLogout }) {
+export default function ScannerScreen({ onSetup }) {
     const [permission, requestPermission] = useCameraPermissions();
     const [scanning, setScanning] = useState(true);
     const [loading, setLoading] = useState(false);
     const [location, setLocation] = useState(null);
     const [result, setResult] = useState(null);
+    const [setupTaps, setSetupTaps] = useState(0);
 
     useEffect(() => {
         (async () => {
@@ -68,6 +69,17 @@ export default function ScannerScreen({ onLogout }) {
         }
     };
 
+    useEffect(() => {
+        let timer;
+        if (result) {
+            // Automatically reset scanner after 5 seconds
+            timer = setTimeout(() => {
+                resetScanner();
+            }, 5000);
+        }
+        return () => clearTimeout(timer);
+    }, [result]);
+
     const resetScanner = () => {
         setResult(null);
         setScanning(true);
@@ -116,8 +128,20 @@ export default function ScannerScreen({ onLogout }) {
                         </View>
                     </View>
 
-                    <TouchableOpacity style={styles.logoutBtn} onPress={onLogout}>
-                        <MaterialCommunityIcons name="logout" size={24} color="white" />
+                    {/* Secret Setup Button (Hidden) */}
+                    <TouchableOpacity
+                        style={[styles.logoutBtn, { opacity: 0 }]}
+                        onPress={() => {
+                            // Secret: Tap 5 times quickly to open setup
+                            setSetupTaps(prev => prev + 1);
+                            setTimeout(() => setSetupTaps(0), 2000); // Reset counter after 2 seconds
+                            if (setupTaps >= 4) {
+                                onSetup();
+                                setSetupTaps(0);
+                            }
+                        }}
+                    >
+                        <MaterialCommunityIcons name="cog" size={24} color="white" />
                     </TouchableOpacity>
                 </CameraView>
             ) : (
@@ -144,7 +168,7 @@ export default function ScannerScreen({ onLogout }) {
                                 )}
 
                                 <TouchableOpacity style={[styles.button, { marginTop: 30 }]} onPress={resetScanner}>
-                                    <Text style={styles.buttonText}>Scan Another</Text>
+                                    <Text style={styles.buttonText}>Scan Another (Auto-resets in 5s)</Text>
                                 </TouchableOpacity>
                             </>
                         )}

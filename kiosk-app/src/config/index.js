@@ -9,7 +9,7 @@
 const LOCAL_API_URL = 'http://192.168.100.24:5000/api';
 
 // Paste your Localtunnel or Ngrok URL here for building/deployment
-const PUBLIC_API_URL = 'https://kiosk-api.vercel.app/api';
+const PUBLIC_API_URL = 'https://kiosk-attendance-api.vercel.app/api';
 
 const API_BASE_URL = PUBLIC_API_URL || LOCAL_API_URL;
 

@@ -1,39 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
 import LoginScreen from './src/screens/LoginScreen';
 import ScannerScreen from './src/screens/ScannerScreen';
 import { getAuthToken, removeAuthToken } from './src/api/client';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSetupMode, setIsSetupMode] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkLoginStatus();
+    checkInitialStatus();
   }, []);
 
-  const checkLoginStatus = async () => {
+  const checkInitialStatus = async () => {
     try {
       const token = await getAuthToken();
-      if (token) {
-        setIsLoggedIn(true);
-      }
+      // Even if no token, we show the scanner by default in Kiosk mode
+      setLoading(false);
     } catch (e) {
-      console.error('Failed to check login status:', e);
-    } finally {
+      console.error('Failed to check status:', e);
       setLoading(false);
     }
   };
 
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
+    setIsSetupMode(false);
   };
 
-  const handleLogout = async () => {
-    await removeAuthToken();
-    setIsLoggedIn(false);
+  const handleGoToSetup = () => {
+    setIsSetupMode(true);
   };
 
   if (loading) {
@@ -47,10 +43,10 @@ export default function App() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      {isLoggedIn ? (
-        <ScannerScreen onLogout={handleLogout} />
-      ) : (
+      {isSetupMode ? (
         <LoginScreen onLoginSuccess={handleLoginSuccess} />
+      ) : (
+        <ScannerScreen onSetup={handleGoToSetup} />
       )}
     </View>
   );

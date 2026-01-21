@@ -15,7 +15,7 @@ import {
 const router = express.Router();
 
 // Record attendance (main scan endpoint)
-router.post('/scan', authenticateToken, async (req, res) => {
+router.post('/scan', async (req, res) => {
     try {
         const {
             qrData,
@@ -275,18 +275,21 @@ router.post('/scan', authenticateToken, async (req, res) => {
 
         if (attendanceError) throw attendanceError;
 
-        // Create audit log
-        await createAuditLog({
-            action: 'ATTENDANCE_RECORDED',
-            entityType: 'attendance',
-            entityId: attendance.id,
-            userId: req.user.id,
-            details: {
-                type: determinedType,
-                employeeId: employee.employee_id,
-                kioskName: kiosk.name
-            }
-        });
+        // Create audit log (only if user is authenticated, e.g., during admin setup)
+        // For public kiosk scans, we skip this since req.user doesn't exist
+        if (req.user) {
+            await createAuditLog({
+                action: 'ATTENDANCE_RECORDED',
+                entityType: 'attendance',
+                entityId: attendance.id,
+                userId: req.user.id,
+                details: {
+                    type: determinedType,
+                    employeeId: employee.employee_id,
+                    kioskName: kiosk.name
+                }
+            });
+        }
 
         res.status(201).json({
             message: `${determinedType === 'checkin' ? 'Check-in' : 'Check-out'} successful`,
