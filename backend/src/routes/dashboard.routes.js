@@ -1,7 +1,7 @@
 import express from 'express';
 import ExcelJS from 'exceljs';
 import { supabase } from '../config/supabase.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -173,6 +173,23 @@ router.get('/audit-logs', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Get audit logs error:', error);
         res.status(500).json({ error: 'Failed to fetch audit logs' });
+    }
+});
+
+// Delete all audit logs (Admin only)
+router.delete('/audit-logs/all', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('audit_logs')
+            .delete()
+            .neq('id', '00000000-0000-0000-0000-000000000000');
+
+        if (error) throw error;
+
+        res.json({ message: 'All audit logs deleted successfully' });
+    } catch (error) {
+        console.error('Delete all audit logs error:', error);
+        res.status(500).json({ error: 'Failed to delete audit logs' });
     }
 });
 

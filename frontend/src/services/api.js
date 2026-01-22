@@ -112,6 +112,7 @@ export const dashboardAPI = {
     getMapKiosks: () => api.get('/dashboard/map/kiosks'),
     getMapAttendance: (hours = 24) => api.get('/dashboard/map/attendance', { params: { hours } }),
     getAuditLogs: (params) => api.get('/dashboard/audit-logs', { params }),
+    deleteAllAuditLogs: () => api.delete('/dashboard/audit-logs/all'),
     exportAttendance: (queryString) => api.get(`/dashboard/export/attendance?${queryString}`, {
         responseType: 'blob',
     }),

@@ -85,7 +85,7 @@ const Employees = () => {
             setEditingEmployee(null);
             setFormData({
                 name: '',
-                employeeId: '',
+                employeeId: `EMP-${(pagination.total + 1).toString().padStart(4, '0')}`,
                 contactNumber: '',
                 email: '',
                 kioskId: '',

@@ -78,7 +78,7 @@ const Kiosks = () => {
                 lat: '',
                 lng: '',
                 geofenceRadius: 30,
-                deviceId: '',
+                deviceId: `KSK-${(pagination.total + 1).toString().padStart(4, '0')}`,
             });
         }
         setFormError('');

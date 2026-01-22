@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { dashboardAPI } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import {
     ClipboardDocumentCheckIcon,
     FunnelIcon,
     ArrowPathIcon,
+    TrashIcon,
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 
 const AuditLogs = () => {
+    const { user } = useAuthStore();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -54,6 +57,23 @@ const AuditLogs = () => {
         }
     };
 
+    const handleDeleteAll = async () => {
+        if (!window.confirm('Are you sure you want to delete all audit logs? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await dashboardAPI.deleteAllAuditLogs();
+            fetchLogs();
+        } catch (error) {
+            console.error('Failed to delete audit logs:', error);
+            alert('Failed to delete audit logs');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const getActionColor = (action) => {
         if (action.includes('CREATE') || action.includes('REGISTER')) return 'badge-success';
         if (action.includes('DELETE')) return 'badge-danger';
@@ -80,6 +100,16 @@ const AuditLogs = () => {
                     <p className="text-dark-400 mt-1">System activity and security logs</p>
                 </div>
                 <div className="flex gap-3">
+                    {user?.role === 'admin' && (
+                        <button
+                            onClick={handleDeleteAll}
+                            className="btn-secondary text-danger-400 hover:text-danger-300"
+                            title="Delete All Logs"
+                        >
+                            <TrashIcon className="w-5 h-5" />
+                            Clear Logs
+                        </button>
+                    )}
                     <button onClick={fetchLogs} className="btn-secondary">
                         <ArrowPathIcon className="w-5 h-5" />
                         Refresh

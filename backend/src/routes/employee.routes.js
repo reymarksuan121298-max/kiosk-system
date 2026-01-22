@@ -13,7 +13,8 @@ router.get('/', authenticateToken, async (req, res) => {
 
         let query = supabase
             .from('employees')
-            .select('*, kiosks(id, name, address)', { count: 'exact' });
+            .select('*, kiosks(id, name, address)', { count: 'exact' })
+            .is('deleted_at', null);
 
         if (search) {
             query = query.or(`name.ilike.%${search}%,employee_id.ilike.%${search}%,contact_number.ilike.%${search}%`);
@@ -166,12 +167,22 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
 
-        const { error } = await supabase
+        // Try hard delete first
+        const { error: deleteError } = await supabase
             .from('employees')
-            .update({ is_active: false, deleted_at: new Date().toISOString() })
+            .delete()
             .eq('id', id);
 
-        if (error) throw error;
+        if (deleteError) {
+            console.log('Hard delete failed, falling back to soft delete:', deleteError.message);
+            // Fallback to soft delete if hard delete fails (e.g., due to existing logs)
+            const { error: updateError } = await supabase
+                .from('employees')
+                .update({ is_active: false, deleted_at: new Date().toISOString() })
+                .eq('id', id);
+
+            if (updateError) throw updateError;
+        }
 
         await createAuditLog({
             action: 'EMPLOYEE_DELETED',
